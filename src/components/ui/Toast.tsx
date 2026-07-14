@@ -34,17 +34,19 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white transform transition-all duration-300 translate-y-0 opacity-100 ${
-              toast.type === 'success' ? 'bg-emerald-600' :
-              toast.type === 'error' ? 'bg-red-600' :
-              'bg-slate-800'
-            }`}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white transform transition-all duration-300 translate-y-0 opacity-100"
           >
-            {toast.type === 'success' && <CheckCircle2 size={20} />}
-            {toast.type === 'error' && <AlertCircle size={20} />}
-            {toast.type === 'info' && <Info size={20} />}
-            <span className="font-medium text-sm">{toast.message}</span>
-            <button onClick={() => setToasts((t) => t.filter((x) => x.id !== toast.id))} className="ml-2 hover:opacity-75">
+            {toast.type === 'success' && <CheckCircle2 size={20} className="text-emerald-600 dark:text-emerald-500 shrink-0" />}
+            {toast.type === 'error' && <AlertCircle size={20} className="text-red-600 dark:text-red-500 shrink-0" />}
+            {toast.type === 'info' && <Info size={20} className="text-slate-500 dark:text-slate-400 shrink-0" />}
+            
+            <span className="font-medium text-sm flex-1">{toast.message}</span>
+            
+            <button 
+              onClick={() => setToasts((t) => t.filter((x) => x.id !== toast.id))} 
+              className="ml-2 p-1 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors duration-200 shrink-0"
+              aria-label="Close notification"
+            >
               <X size={16} />
             </button>
           </div>

@@ -35,44 +35,47 @@ export const LoginPage = () => {
     <AuthLayout title="Welcome Back" subtitle="Enter your credentials to access your branch">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Mail className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="email"
               name="email"
               required
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="name@company.com"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="password"
               name="password"
               required
               disabled={isLoading}
               minLength={6}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="••••••••"
             />
           </div>
         </div>
-      <div className="flex justify-end">
-        <Link to="/forgot-password" className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors">
-          Forgot password?
-        </Link>
-      </div>
+        <div className="flex justify-end mt-1">
+          <Link 
+            to="/forgot-password" 
+            className="text-sm font-medium text-red-600 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200 px-2 py-1 -mr-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         <button
           type="submit"
@@ -83,16 +86,16 @@ export const LoginPage = () => {
         </button>
       </form>
 
-      <div className="mt-8 text-center">
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
+      <div className="mt-8 text-center flex items-center justify-center text-sm transition-colors duration-200">
+        <span className="text-slate-600 dark:text-slate-400 transition-colors duration-200">
           Don't have an account?
-          <Link
-            to="/register"
-            className="ml-2 font-semibold text-red-600 hover:text-red-700 transition-colors"
-          >
-            Register here
-          </Link>
-        </p>
+        </span>
+        <Link
+          to="/register"
+          className="ml-2 inline-block font-semibold text-red-600 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200 px-3 py-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10"
+        >
+          Register here
+        </Link>
       </div>
     </AuthLayout>
   );

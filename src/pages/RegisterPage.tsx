@@ -63,68 +63,68 @@ export const RegisterPage = () => {
     <AuthLayout title="Create Account" subtitle="Register your branch account">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Full Name
           </label>
           <div className="relative">
-            <User className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <User className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="text"
               name="fullName"
               required
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="John Doe"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Mail className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="email"
               name="email"
               required
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="name@company.com"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="password"
               name="password"
               required
               disabled={isLoading}
               minLength={6}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="••••••••"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Select Branch
           </label>
           <div className="relative">
-            <Store className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Store className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <select
               name="branch"
               required
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all appearance-none disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 appearance-none disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
             >
               <option value="">Select a branch...</option>
               {branches.map((branch) => (
@@ -137,16 +137,16 @@ export const RegisterPage = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Request Role
           </label>
           <div className="relative">
-            <User className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <User className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <select
               name="role"
               required
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all appearance-none disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 appearance-none disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
             >
               <option value="">Select a role...</option>
               <option value="salesperson">Salesperson</option>
@@ -164,16 +164,16 @@ export const RegisterPage = () => {
         </button>
       </form>
 
-      <div className="mt-8 text-center">
-        <p className="text-slate-600 dark:text-slate-400 text-sm">
+      <div className="mt-8 text-center flex items-center justify-center text-sm transition-colors duration-200">
+        <span className="text-slate-600 dark:text-slate-400 transition-colors duration-200">
           Already have an account?
-          <Link
-            to="/login"
-            className="ml-2 font-semibold text-red-600 hover:text-red-700 transition-colors"
-          >
-            Sign in here
-          </Link>
-        </p>
+        </span>
+        <Link
+          to="/login"
+          className="ml-2 inline-block font-semibold text-red-600 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200 px-3 py-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10"
+        >
+          Sign in here
+        </Link>
       </div>
     </AuthLayout>
   );

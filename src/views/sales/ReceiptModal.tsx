@@ -39,46 +39,46 @@ const ReceiptContent = ({
   branchName: string;
   qrWrapRef?: RefObject<HTMLDivElement | null>;
 }) => (
-  <div className="bg-white text-slate-900 p-5 rounded-xl border border-slate-200 text-sm">
+  <div className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-5 rounded-xl border border-slate-200 dark:border-slate-800 text-sm transition-colors duration-200">
     <div className="text-center mb-4">
       <p className="font-black text-lg tracking-tight">
         <span className="text-red-600">P</span>M{' '}
-        <span className="tracking-widest text-xs font-bold">GADGETS</span>
+        <span className="tracking-widest text-xs font-bold text-slate-900 dark:text-white transition-colors duration-200">GADGETS</span>
       </p>
-      <p className="text-slate-500 text-xs">{branchName} Branch</p>
+      <p className="text-slate-500 dark:text-slate-400 text-xs transition-colors duration-200">{branchName} Branch</p>
     </div>
 
-    <div className="flex justify-between text-xs text-slate-500 border-y border-dashed border-slate-300 py-2 mb-3">
+    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 border-y border-dashed border-slate-300 dark:border-slate-700 py-2 mb-3 transition-colors duration-200">
       <span>{sale.receipt_number}</span>
       <span>{formatDateTime(sale.created_at)}</span>
     </div>
 
     <div className="space-y-0.5 text-xs mb-3">
       <p>
-        <span className="text-slate-500">Customer:</span>{' '}
-        {sale.customer?.full_name ?? '—'}
+        <span className="text-slate-500 dark:text-slate-400 transition-colors duration-200">Customer:</span>{' '}
+        <span className="text-slate-900 dark:text-slate-200 font-medium transition-colors duration-200">{sale.customer?.full_name ?? '—'}</span>
         {sale.customer?.phone ? ` (${sale.customer.phone})` : ''}
       </p>
       <p>
-        <span className="text-slate-500">Served by:</span>{' '}
-        {sale.salesperson?.full_name ?? '—'}
+        <span className="text-slate-500 dark:text-slate-400 transition-colors duration-200">Served by:</span>{' '}
+        <span className="text-slate-900 dark:text-slate-200 font-medium transition-colors duration-200">{sale.salesperson?.full_name ?? '—'}</span>
       </p>
     </div>
 
-    <div className="border-t border-dashed border-slate-300 pt-2 space-y-2 mb-3">
+    <div className="border-t border-dashed border-slate-300 dark:border-slate-700 pt-2 space-y-2 mb-3 transition-colors duration-200">
       {sale.sale_items.map((item) => (
         <div key={item.id}>
-          <p className="font-medium">{item.product?.name ?? 'Item'}</p>
+          <p className="font-medium text-slate-900 dark:text-white transition-colors duration-200">{item.product?.name ?? 'Item'}</p>
           <div className="flex justify-between text-xs">
-            <span className="text-slate-500">
+            <span className="text-slate-500 dark:text-slate-400 transition-colors duration-200">
               {item.quantity} × {formatNaira(item.unit_price)}
             </span>
-            <span className="font-medium text-sm">
+            <span className="font-medium text-sm text-slate-900 dark:text-white transition-colors duration-200">
               {formatNaira(item.unit_price * item.quantity)}
             </span>
           </div>
           {item.imeis && item.imeis.length > 0 && (
-            <p className="text-[10px] text-slate-500 break-all">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 break-all mt-0.5 font-mono transition-colors duration-200">
               IMEI: {item.imeis.join(', ')}
             </p>
           )}
@@ -86,30 +86,30 @@ const ReceiptContent = ({
       ))}
     </div>
 
-    <div className="border-t border-dashed border-slate-300 pt-2 space-y-1">
-      <div className="flex justify-between text-xs text-slate-500">
+    <div className="border-t border-dashed border-slate-300 dark:border-slate-700 pt-2 space-y-1 transition-colors duration-200">
+      <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
         <span>Subtotal</span>
         <span>{formatNaira(sale.subtotal)}</span>
       </div>
       {sale.discount_amount > 0 && (
-        <div className="flex justify-between text-xs text-amber-600">
+        <div className="flex justify-between text-xs text-amber-600 dark:text-amber-500 font-medium transition-colors duration-200">
           <span>Discount</span>
           <span>−{formatNaira(sale.discount_amount)}</span>
         </div>
       )}
       {sale.vat_amount > 0 && (
-        <div className="flex justify-between text-xs text-slate-500">
+        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
           <span>VAT (7.5%)</span>
           <span>{formatNaira(sale.vat_amount)}</span>
         </div>
       )}
-      <div className="flex justify-between font-bold text-base">
+      <div className="flex justify-between font-bold text-base text-slate-900 dark:text-white transition-colors duration-200">
         <span>TOTAL</span>
         <span>{formatNaira(sale.total_amount)}</span>
       </div>
     </div>
 
-    <div ref={qrWrapRef} className="flex flex-col items-center mt-4 gap-1">
+    <div ref={qrWrapRef} className="flex flex-col items-center mt-4 gap-1 p-2 bg-white rounded-lg inline-block mx-auto max-w-fit">
       <QRCodeCanvas
         value={JSON.stringify({
           receipt: sale.receipt_number,
@@ -118,7 +118,7 @@ const ReceiptContent = ({
         })}
         size={88}
       />
-      <p className="text-[10px] text-slate-400">
+      <p className="text-[10px] text-slate-400 text-center mt-1 select-none">
         Scan to verify · Thank you for shopping with PM Gadgets
       </p>
     </div>
@@ -271,19 +271,19 @@ export const ReceiptModal = ({ saleId, onClose }: ReceiptModalProps) => {
             <div className="flex flex-wrap justify-end gap-3 pt-4">
               <button
                 onClick={onClose}
-                className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors"
+                className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 rounded-xl text-sm font-medium transition-all duration-200"
               >
                 Close
               </button>
               <button
                 onClick={handleDownloadPdf}
-                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-transparent hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition-all duration-200"
               >
                 <Download size={16} /> Download PDF
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-red-600/20 active:scale-[0.98]"
               >
                 <Printer size={16} /> Print Receipt
               </button>

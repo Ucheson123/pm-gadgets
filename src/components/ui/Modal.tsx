@@ -20,21 +20,21 @@ export const Modal = ({ isOpen, onClose, title, children, actions }: ModalProps)
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       {/* min-h-full keeps short modals centered; tall ones start at the top and scroll */}
       <div className="min-h-full flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4 animate-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{title}</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4 animate-in zoom-in-95 duration-200 transition-colors">
+          <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 transition-colors duration-200">
+            <h3 className="font-bold text-lg text-slate-900 dark:text-white transition-colors duration-200">{title}</h3>
             <button
               onClick={onClose}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-1 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors duration-200"
             >
               <X size={20} />
             </button>
           </div>
-          <div className="p-5 text-slate-600 dark:text-slate-300">
+          <div className="p-5 text-slate-600 dark:text-slate-300 transition-colors duration-200">
             {children}
           </div>
           {actions && (
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 transition-colors duration-200">
               {actions}
             </div>
           )}

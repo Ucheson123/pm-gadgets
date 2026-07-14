@@ -27,7 +27,7 @@ export const NotificationsBell = () => {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+        className="relative p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 transition-all duration-200"
         aria-label="Notifications"
       >
         <Bell size={18} />
@@ -42,16 +42,16 @@ export const NotificationsBell = () => {
         <>
           {/* click-away layer */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl">
-            <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900">
-              <span className="font-bold text-sm text-slate-900 dark:text-white">
+          <div className="fixed left-4 right-4 top-20 z-50 max-h-96 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 transition-colors duration-200">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10 transition-colors duration-200">
+              <span className="font-bold text-sm text-slate-900 dark:text-white transition-colors">
                 Notifications
               </span>
               {unread > 0 && (
                 <button
                   onClick={() => markAllRead.mutate()}
                   disabled={markAllRead.isPending}
-                  className="flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+                  className="flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 px-2 py-1 rounded-md disabled:opacity-50 transition-colors"
                 >
                   <CheckCheck size={13} /> Mark all read
                 </button>
@@ -65,7 +65,7 @@ export const NotificationsBell = () => {
             )}
 
             {!notifications.isLoading && rows.length === 0 && (
-              <p className="p-6 text-center text-sm text-slate-500">
+              <p className="p-6 text-center text-sm text-slate-500 dark:text-slate-400 transition-colors">
                 Nothing yet — order, wallet, and stock alerts will appear here.
               </p>
             )}
@@ -73,20 +73,20 @@ export const NotificationsBell = () => {
             {rows.map((n) => (
               <div
                 key={n.id}
-                className={`p-3 border-b border-slate-100 dark:border-slate-800 last:border-0 ${
-                  n.read ? '' : 'bg-red-50/50 dark:bg-red-900/10'
+                className={`p-3 border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-default ${
+                  n.read ? 'bg-transparent' : 'bg-red-50/50 dark:bg-red-900/20'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <p className={`text-sm ${n.read ? 'text-slate-600 dark:text-slate-400' : 'font-semibold text-slate-900 dark:text-white'}`}>
+                  <p className={`text-sm transition-colors ${n.read ? 'text-slate-600 dark:text-slate-400' : 'font-semibold text-slate-900 dark:text-white'}`}>
                     {n.title}
                   </p>
-                  <span className="text-[10px] text-slate-400 shrink-0 mt-0.5">
+                  <span className="text-[10px] text-slate-400 shrink-0 mt-0.5 transition-colors">
                     {timeAgo(n.created_at)}
                   </span>
                 </div>
                 {n.body && (
-                  <p className="text-xs text-slate-500 mt-0.5">{n.body}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 transition-colors">{n.body}</p>
                 )}
               </div>
             ))}

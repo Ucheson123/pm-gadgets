@@ -106,10 +106,10 @@ export const AuditLogsView = () => {
           <button
             key={t.label}
             onClick={() => setTable(t.id)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
               table === t.id
-                ? 'bg-red-600 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400'
             }`}
           >
             {t.label}
@@ -117,11 +117,11 @@ export const AuditLogsView = () => {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <h2 className="font-bold text-slate-900 dark:text-white">Audit Trail</h2>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-colors duration-200 hover:border-red-100 dark:hover:border-red-500/20">
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center transition-colors duration-200">
+          <h2 className="font-bold text-slate-900 dark:text-white transition-colors duration-200">Audit Trail</h2>
           {logs.data && (
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-200">
               Latest {logs.data.length} event(s)
             </span>
           )}
@@ -138,34 +138,34 @@ export const AuditLogsView = () => {
         )}
 
         {!logs.isLoading && !logs.isError && (logs.data ?? []).length === 0 && (
-          <div className="p-12 text-center text-slate-500">
-            <ScrollText className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-700" />
+          <div className="p-12 text-center text-slate-500 dark:text-slate-400 transition-colors duration-200">
+            <ScrollText className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-700 transition-colors duration-200" />
             <p>No audit events for this filter.</p>
           </div>
         )}
 
-        <div className="divide-y divide-slate-200 dark:divide-slate-800">
+        <div className="divide-y divide-slate-200 dark:divide-slate-800 transition-colors duration-200">
           {(logs.data ?? []).map((log) => (
-            <div key={log.id} className="p-4">
+            <div key={log.id} className="p-4 transition-colors duration-200 hover:bg-red-50/50 dark:hover:bg-red-500/5">
               <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ACTION_STYLES[log.action] ?? ''}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-colors duration-200 ${ACTION_STYLES[log.action] ?? ''}`}>
                   {log.action}
                 </span>
-                <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize">
+                <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize transition-colors duration-200">
                   {log.table_name.replace('_', ' ')}
                 </span>
                 {log.record_label && (
-                  <span className="text-sm font-medium text-red-600 dark:text-red-400 truncate max-w-xs">
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400 truncate max-w-xs transition-colors duration-200">
                     {log.record_label}
                   </span>
                 )}
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-400 dark:text-slate-500 transition-colors duration-200">
                   by {log.user_name}
                   {log.user_role && <span className="capitalize"> ({log.user_role})</span>}
                   {' '}· {formatDateTime(log.created_at)}
                 </span>
               </div>
-              <div className="text-xs text-slate-500 space-y-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5 transition-colors duration-200">
                 {summarize(log).map((line, i) => (
                   <p key={i} className="font-mono break-all">{line}</p>
                 ))}

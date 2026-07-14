@@ -50,8 +50,6 @@ export const AdjustStockModal = ({ product, onClose }: AdjustStockModalProps) =>
           );
           resetAndClose();
         },
-        // The RPC's errors (e.g. "Insufficient stock: only 3 unit(s)
-        // available") are already human-readable — toast them directly.
         onError: (error) => addToast(error.message, 'error'),
       }
     );
@@ -62,12 +60,12 @@ export const AdjustStockModal = ({ product, onClose }: AdjustStockModalProps) =>
       type="button"
       onClick={() => setDirection(dir)}
       disabled={adjustStock.isPending}
-      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
+      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-200 ${
         direction === dir
           ? dir === 'add'
             ? 'bg-emerald-600 border-emerald-600 text-white'
             : 'bg-red-600 border-red-600 text-white'
-          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20'
       }`}
     >
       <Icon size={16} /> {label}
@@ -81,9 +79,9 @@ export const AdjustStockModal = ({ product, onClose }: AdjustStockModalProps) =>
       title={`Adjust Stock — ${product?.name ?? ''}`}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-          <span className="text-sm text-slate-500">Current stock</span>
-          <span className="text-lg font-bold text-slate-900 dark:text-white">
+        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl transition-colors duration-200">
+          <span className="text-sm text-slate-500 dark:text-slate-400">Current stock</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white transition-colors">
             {currentQty} unit(s)
           </span>
         </div>
@@ -94,7 +92,7 @@ export const AdjustStockModal = ({ product, onClose }: AdjustStockModalProps) =>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Quantity
           </label>
           <input
@@ -105,14 +103,14 @@ export const AdjustStockModal = ({ product, onClose }: AdjustStockModalProps) =>
             step="1"
             required
             disabled={adjustStock.isPending}
-            className="w-full px-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+            className="w-full px-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
             placeholder="0"
           />
         </div>
 
         {validAmount && (
           <div
-            className={`flex items-center justify-between p-4 rounded-xl text-sm font-medium ${
+            className={`flex items-center justify-between p-4 rounded-xl text-sm font-medium transition-colors duration-200 ${
               wouldGoNegative
                 ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
                 : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
@@ -130,14 +128,14 @@ export const AdjustStockModal = ({ product, onClose }: AdjustStockModalProps) =>
             type="button"
             onClick={resetAndClose}
             disabled={adjustStock.isPending}
-            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={adjustStock.isPending || !validAmount || wouldGoNegative}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-red-600/30"
           >
             {adjustStock.isPending && <Loader2 size={16} className="animate-spin" />}
             Confirm Adjustment

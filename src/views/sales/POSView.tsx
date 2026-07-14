@@ -137,15 +137,15 @@ export const POSView = () => {
   };
 
   const inputClass =
-    'w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm text-slate-900 dark:text-white transition-all disabled:opacity-50';
+    'w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* LEFT: product picker */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-colors duration-200">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+            <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 transition-colors" size={16} />
             <input
               type="text"
               value={search}
@@ -155,14 +155,14 @@ export const POSView = () => {
             />
           </div>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800">
+        <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800 transition-colors duration-200">
           {stock.isLoading && (
             <div className="p-8 flex justify-center">
               <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
             </div>
           )}
           {!stock.isLoading && sellable.length === 0 && (
-            <p className="p-8 text-center text-sm text-slate-500">
+            <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 transition-colors">
               No in-stock products{search ? ` matching "${search}"` : ''}.
             </p>
           )}
@@ -170,15 +170,15 @@ export const POSView = () => {
             <button
               key={row.id}
               onClick={() => addToCart(row.id)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-red-50/50 dark:hover:bg-red-500/5 transition-all duration-200 group"
             >
               <div className="min-w-0">
-                <p className="font-medium text-slate-900 dark:text-white truncate">{row.name}</p>
-                <p className="text-xs text-slate-500">
+                <p className="font-medium text-slate-900 dark:text-white truncate transition-colors duration-200">{row.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
                   {row.sku} · {row.quantity} in stock
                 </p>
               </div>
-              <span className="font-semibold text-slate-900 dark:text-white shrink-0">
+              <span className="font-semibold text-slate-900 dark:text-white shrink-0 transition-colors duration-200 group-hover:text-red-600 dark:group-hover:text-red-400">
                 {formatNaira(row.price)}
               </span>
             </button>
@@ -187,26 +187,27 @@ export const POSView = () => {
       </div>
 
       {/* RIGHT: cart + customer + checkout */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 space-y-5">
-        <h2 className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 space-y-5 transition-colors duration-200">
+        <h2 className="flex items-center gap-2 font-bold text-slate-900 dark:text-white transition-colors duration-200">
           <ShoppingCart size={18} /> Current Sale
         </h2>
 
         {cart.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400 transition-colors">
             Tap a product on the left to add it to the sale.
           </p>
         ) : (
           <div className="space-y-4">
             {cart.map((line) => (
-              <div key={line.product_id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 space-y-2">
+              <div key={line.product_id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 space-y-2 transition-all duration-200 hover:border-red-100 dark:hover:border-red-500/20 bg-white dark:bg-slate-900/50">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
+                  <p className="font-medium text-sm text-slate-900 dark:text-white truncate transition-colors">
                     {line.name}
                   </p>
                   <button
                     onClick={() => removeLine(line.product_id)}
-                    className="p-1 text-slate-400 hover:text-red-600"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
+                    aria-label="Remove item"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -217,11 +218,11 @@ export const POSView = () => {
                       onClick={() => line.quantity > 1
                         ? updateLine(line.product_id, { quantity: line.quantity - 1 })
                         : removeLine(line.product_id)}
-                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300"
+                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 rounded-lg text-slate-600 dark:text-slate-300 transition-all duration-200"
                     >
                       <Minus size={14} />
                     </button>
-                    <span className="w-8 text-center text-sm font-semibold text-slate-900 dark:text-white">
+                    <span className="w-8 text-center text-sm font-semibold text-slate-900 dark:text-white transition-colors">
                       {line.quantity}
                     </span>
                     <button
@@ -229,13 +230,13 @@ export const POSView = () => {
                         quantity: Math.min(line.quantity + 1, line.maxQty),
                       })}
                       disabled={line.quantity >= line.maxQty}
-                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 disabled:opacity-40"
+                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 rounded-lg text-slate-600 dark:text-slate-300 disabled:opacity-40 transition-all duration-200"
                     >
                       <Plus size={14} />
                     </button>
-                    <span className="text-xs text-slate-400">max {line.maxQty}</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500 transition-colors">max {line.maxQty}</span>
                   </div>
-                  <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                  <span className="font-semibold text-sm text-slate-900 dark:text-white transition-colors">
                     {formatNaira(line.price * line.quantity)}
                   </span>
                 </div>
@@ -252,8 +253,8 @@ export const POSView = () => {
         )}
 
         {/* Customer */}
-        <div className="space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+        <div className="space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4 transition-colors duration-200">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors">
             <UserRound size={15} /> Customer
           </h3>
           <select
@@ -300,9 +301,9 @@ export const POSView = () => {
         </div>
 
         {/* Discount + VAT + totals */}
-        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
+        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3 transition-colors duration-200">
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
               <BadgePercent size={15} /> Discount (₦) — optional
             </label>
             <input
@@ -321,13 +322,13 @@ export const POSView = () => {
               </p>
             )}
             {discount > 0 && !discountTooLarge && (
-              <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-1 transition-colors">
                 Discounts are printed on the receipt and recorded in the audit trail.
               </p>
             )}
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 transition-colors cursor-pointer select-none">
             <input
               type="checkbox"
               checked={applyVat}
@@ -338,21 +339,21 @@ export const POSView = () => {
             Apply VAT (7.5% of amount after discount)
           </label>
 
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm text-slate-500">
+          <div className="space-y-1 bg-slate-50 dark:bg-slate-800/20 p-4 rounded-xl transition-colors duration-200">
+            <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 transition-colors">
               <span>Subtotal</span><span>{formatNaira(subtotal)}</span>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-sm text-amber-600 dark:text-amber-500">
+              <div className="flex justify-between text-sm text-amber-600 dark:text-amber-500 transition-colors">
                 <span>Discount</span><span>−{formatNaira(Math.min(discount, subtotal))}</span>
               </div>
             )}
             {applyVat && (
-              <div className="flex justify-between text-sm text-slate-500">
+              <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 transition-colors">
                 <span>VAT (7.5%)</span><span>{formatNaira(vat)}</span>
               </div>
             )}
-            <div className="flex justify-between font-bold text-lg text-slate-900 dark:text-white">
+            <div className="flex justify-between font-bold text-lg text-slate-900 dark:text-white pt-1 transition-colors">
               <span>Total</span><span>{formatNaira(total)}</span>
             </div>
           </div>
@@ -360,7 +361,7 @@ export const POSView = () => {
           <button
             onClick={handleCheckout}
             disabled={createSale.isPending || cart.length === 0 || discountTooLarge}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all duration-200 active:scale-[0.98]"
           >
             {createSale.isPending && <Loader2 size={18} className="animate-spin" />}
             {createSale.isPending ? 'Recording sale...' : 'Complete Sale & Generate Receipt'}

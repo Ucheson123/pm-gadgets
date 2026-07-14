@@ -55,16 +55,16 @@ export const ResetPasswordPage = () => {
     return (
       <AuthLayout title="Link Expired" subtitle="This reset link is invalid or has expired">
         <div className="text-center py-6">
-          <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShieldAlert className="w-8 h-8 text-orange-600" />
+          <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors duration-200">
+            <ShieldAlert className="w-8 h-8 text-orange-600 dark:text-orange-500 transition-colors duration-200" />
           </div>
-          <p className="text-sm text-slate-500 mb-6">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 transition-colors duration-200">
             Reset links only work once and expire quickly. Request a fresh one and use it
             right away.
           </p>
           <Link
             to="/forgot-password"
-            className="font-semibold text-red-600 hover:text-red-700 text-sm"
+            className="inline-block font-semibold text-red-600 hover:text-red-700 dark:hover:text-red-400 text-sm transition-all duration-200 px-4 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10"
           >
             Request a new link
           </Link>
@@ -77,35 +77,35 @@ export const ResetPasswordPage = () => {
     <AuthLayout title="Set New Password" subtitle="Choose a new password for your account">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             New Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="password"
               name="password"
               required
               minLength={6}
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="••••••••"
             />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Confirm New Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
+            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
             <input
               type="password"
               name="confirm"
               required
               minLength={6}
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="••••••••"
             />
           </div>

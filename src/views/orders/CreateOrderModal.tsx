@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Loader2, Minus, Plus, Search, Store } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
@@ -90,11 +90,11 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
       <div className="space-y-4">
         {/* Step 1: seller branch */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
             Order from
           </label>
           <div className="relative">
-            <Store className="absolute left-3 top-3 text-slate-400" size={18} />
+            <Store className="absolute left-3 top-3 text-slate-400 dark:text-slate-500 transition-colors" size={18} />
             <select
               value={sellerBranchId}
               onChange={(e) => {
@@ -102,7 +102,7 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
                 setCart({});
               }}
               disabled={createOrder.isPending}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all appearance-none disabled:opacity-50"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 appearance-none disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
             >
               <option value="">Select a branch...</option>
               {otherBranches.map((b) => (
@@ -118,36 +118,36 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
         {sellerBranchId && (
           <>
             <div className="relative">
-              <Search className="absolute left-3 top-3 text-slate-400" size={16} />
+              <Search className="absolute left-3 top-3 text-slate-400 dark:text-slate-500 transition-colors" size={16} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm text-slate-900 dark:text-white"
+                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm text-slate-900 dark:text-white transition-all duration-200 hover:border-red-100 dark:hover:border-red-500/30"
                 placeholder="Search their stock..."
               />
             </div>
 
-            <div className="max-h-64 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-200 dark:divide-slate-800">
+            <div className="max-h-64 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-200 dark:divide-slate-800 transition-colors duration-200">
               {stock.isLoading && (
                 <div className="p-6 flex justify-center">
                   <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
                 </div>
               )}
               {!stock.isLoading && filteredStock.length === 0 && (
-                <p className="p-6 text-center text-sm text-slate-500">
+                <p className="p-6 text-center text-sm text-slate-500 dark:text-slate-400 transition-colors">
                   No sellable stock found at this branch.
                 </p>
               )}
               {filteredStock.map((row) => {
                 const qty = cart[row.product_id] ?? 0;
                 return (
-                  <div key={row.product_id} className="p-3 flex items-center justify-between gap-3">
+                  <div key={row.product_id} className="p-3 flex items-center justify-between gap-3 hover:bg-red-50/50 dark:hover:bg-red-500/5 transition-colors duration-200">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate transition-colors">
                         {row.name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 transition-colors">
                         {formatNaira(row.price)} · {row.quantity} available
                       </p>
                     </div>
@@ -156,18 +156,18 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
                         type="button"
                         onClick={() => setQty(row.product_id, qty - 1, row.quantity)}
                         disabled={qty === 0 || createOrder.isPending}
-                        className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 disabled:opacity-40"
+                        className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 disabled:opacity-40 transition-colors duration-200"
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="w-8 text-center text-sm font-semibold text-slate-900 dark:text-white">
+                      <span className="w-8 text-center text-sm font-semibold text-slate-900 dark:text-white transition-colors">
                         {qty}
                       </span>
                       <button
                         type="button"
                         onClick={() => setQty(row.product_id, qty + 1, row.quantity)}
                         disabled={qty >= row.quantity || createOrder.isPending}
-                        className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 disabled:opacity-40"
+                        className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 disabled:opacity-40 transition-colors duration-200"
                       >
                         <Plus size={14} />
                       </button>
@@ -177,11 +177,11 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
               })}
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-              <span className="text-sm text-slate-500">
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl transition-colors duration-200">
+              <span className="text-sm text-slate-500 dark:text-slate-400 transition-colors">
                 {itemCount} item(s) selected
               </span>
-              <span className="text-lg font-bold text-slate-900 dark:text-white">
+              <span className="text-lg font-bold text-slate-900 dark:text-white transition-colors">
                 {formatNaira(total)}
               </span>
             </div>
@@ -193,7 +193,7 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
             type="button"
             onClick={resetAndClose}
             disabled={createOrder.isPending}
-            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -201,7 +201,7 @@ export const CreateOrderModal = ({ isOpen, onClose }: CreateOrderModalProps) => 
             type="button"
             onClick={handleSubmit}
             disabled={createOrder.isPending || !sellerBranchId || itemCount === 0}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-red-600/30"
           >
             {createOrder.isPending && <Loader2 size={16} className="animate-spin" />}
             Submit Order
