@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Loader2, ShieldAlert } from 'lucide-react';
+import { Loader2, ShieldAlert } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/Toast';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { FullScreenLoader } from '../components/ui/BrandLogo';
+import { PasswordInput } from '../components/ui/PasswordInput';
 
 // The recovery link signs the user in with a temporary session, then lands
 // them here. This page checks that session directly (NOT via AuthContext,
@@ -76,40 +77,18 @@ export const ResetPasswordPage = () => {
   return (
     <AuthLayout title="Set New Password" subtitle="Choose a new password for your account">
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
-            New Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
-            <input
-              type="password"
-              name="password"
-              required
-              minLength={6}
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
-              placeholder="••••••••"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
-            Confirm New Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
-            <input
-              type="password"
-              name="confirm"
-              required
-              minLength={6}
-              disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
-              placeholder="••••••••"
-            />
-          </div>
-        </div>
+        <PasswordInput
+          name="password"
+          label="New Password"
+          disabled={isLoading}
+          autoComplete="new-password"
+        />
+        <PasswordInput
+          name="confirm"
+          label="Confirm New Password"
+          disabled={isLoading}
+          autoComplete="new-password"
+        />
         <button
           type="submit"
           disabled={isLoading}

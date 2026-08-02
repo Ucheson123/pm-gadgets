@@ -11,6 +11,9 @@ export interface Product {
   description: string | null;
   price: number;       // selling price
   cost_price: number;  // buying price (manager-facing)
+  parent_id: string | null;                      // set on variants
+  variant_attributes: Record<string, string> | null; // e.g. {"Color":"Black","Storage":"256GB"}
+  track_imei: boolean;
 }
 
 /** A catalog product merged with this branch's stock level */
@@ -26,22 +29,40 @@ export interface NewProductInput {
   price: number;
   costPrice: number;
   initialStock: number;
+  trackImei: boolean;
+  imeis?: string[]; // required when trackImei && initialStock > 0
+}
+
+export interface VariantDef {
+  sku: string;
+  name: string; // composed: "iPhone 12 — Black / 256GB"
+  attributes: Record<string, string>;
+  price: number;
+  costPrice: number;
+}
+
+export interface NewVariantProductInput {
+  parentName: string;
+  description: string;
+  trackImei: boolean;
+  variants: VariantDef[];
+}
+
+export interface UnitRow {
+  id: string;
+  imei: string;
 }
 
 const STOCK_QUERY_KEY = ['branch-stock'];
+const PRODUCT_COLS =
+  'id, sku, name, description, price, cost_price, parent_id, variant_attributes, track_imei';
 
 // ==========================================
 // QUERY: catalog + branch stock, merged
 // ==========================================
-// Products are a global catalog (readable by all staff); inventory rows are
-// branch-scoped and RLS automatically filters them to the user's branch.
-// Products the branch hasn't stocked yet show up with quantity 0.
 const fetchBranchStock = async (): Promise<StockRow[]> => {
   const [productsRes, inventoryRes] = await Promise.all([
-    supabase
-      .from('products')
-      .select('id, sku, name, description, price, cost_price')
-      .order('name'),
+    supabase.from('products').select(PRODUCT_COLS).order('name'),
     supabase.from('inventory').select('product_id, quantity, updated_at'),
   ]);
 
@@ -59,18 +80,36 @@ const fetchBranchStock = async (): Promise<StockRow[]> => {
       quantity: stock?.quantity ?? 0,
       stock_updated_at: stock?.updated_at ?? null,
     };
-  });
+  }) as StockRow[];
 };
 
 export const useBranchStock = () =>
   useQuery({ queryKey: STOCK_QUERY_KEY, queryFn: fetchBranchStock });
 
 // ==========================================
-// MUTATION: add a product to the catalog
+// QUERY: in-stock serialized units for an IMEI-tracked product
+// (RLS scopes to the user's branch — used by the POS picker and
+// the remove-stock picker)
 // ==========================================
-// Inserts the product (manager-only via RLS), then stocks it through the
-// adjust_inventory RPC if an initial quantity was given — so even the very
-// first stock movement goes through the audited, race-safe path.
+export const useUnitsInStock = (productId: string | null) =>
+  useQuery({
+    queryKey: ['units-in-stock', productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<UnitRow[]> => {
+      const { data, error } = await supabase
+        .from('product_units')
+        .select('id, imei')
+        .eq('product_id', productId)
+        .eq('status', 'in_stock')
+        .order('created_at');
+      if (error) throw error;
+      return (data ?? []) as UnitRow[];
+    },
+  });
+
+// ==========================================
+// MUTATION: add a standard (non-variant) product
+// ==========================================
 export const useAddProduct = () => {
   const queryClient = useQueryClient();
 
@@ -84,8 +123,9 @@ export const useAddProduct = () => {
           description: input.description.trim() || null,
           price: input.price,
           cost_price: input.costPrice,
+          track_imei: input.trackImei,
         })
-        .select('id, sku, name, description, price, cost_price')
+        .select(PRODUCT_COLS)
         .single();
 
       if (error) throw error;
@@ -94,8 +134,8 @@ export const useAddProduct = () => {
         const { error: stockError } = await supabase.rpc('adjust_inventory', {
           p_product_id: product.id,
           p_quantity_change: input.initialStock,
+          p_imeis: input.trackImei ? (input.imeis ?? []) : null,
         });
-        // Product was created but stocking failed — surface a precise message
         if (stockError) {
           throw new Error(
             `Product created, but adding stock failed: ${stockError.message}`
@@ -105,39 +145,93 @@ export const useAddProduct = () => {
 
       return product as Product;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: STOCK_QUERY_KEY }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: STOCK_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['units-in-stock'] });
+    },
   });
 };
 
 // ==========================================
-// MUTATION: adjust stock via the Postgres RPC
+// MUTATION: add a parent product with variants
+// Variants are created with ZERO stock — each is then stocked via
+// Adjust (which enforces IMEIs for tracked products).
 // ==========================================
-// The RPC enforces manager-only, branch scope, row locking, and the
-// zero-stock floor. Errors (e.g. "Insufficient stock") come back as
-// messages we can toast directly.
-export const useAdjustStock = () => {
+export const useAddVariantProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: { productId: string; quantityChange: number }) => {
-      const { data, error } = await supabase.rpc('adjust_inventory', {
-        p_product_id: input.productId,
-        p_quantity_change: input.quantityChange,
-      });
-      if (error) throw error;
-      return data;
+    mutationFn: async (input: NewVariantProductInput) => {
+      // 1. Parent: a grouping label — carries no stock, no sellable price
+      const { data: parent, error: parentError } = await supabase
+        .from('products')
+        .insert({
+          sku: `GRP-${Date.now().toString(36).toUpperCase()}`,
+          name: input.parentName.trim(),
+          description: input.description.trim() || null,
+          price: 0,
+          cost_price: 0,
+          track_imei: input.trackImei,
+        })
+        .select('id')
+        .single();
+      if (parentError) throw parentError;
+
+      // 2. Variants in one atomic insert
+      const { error: variantsError } = await supabase.from('products').insert(
+        input.variants.map((v) => ({
+          sku: v.sku.trim(),
+          name: v.name,
+          description: null,
+          price: v.price,
+          cost_price: v.costPrice,
+          parent_id: parent.id,
+          variant_attributes: v.attributes,
+          track_imei: input.trackImei,
+        }))
+      );
+      if (variantsError) {
+        // Best-effort cleanup so a failed batch doesn't strand an empty parent
+        await supabase.from('products').delete().eq('id', parent.id);
+        throw variantsError;
+      }
+
+      return parent;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: STOCK_QUERY_KEY }),
   });
 };
 
 // ==========================================
-// MUTATION: edit product details (prices etc.)
+// MUTATION: adjust stock (IMEI-aware)
 // ==========================================
-// .select().single() is our zero-row-update guard: if RLS silently blocks
-// the write (e.g. not an active manager), no row comes back and we throw
-// instead of showing a false success. Changes are captured in audit_logs
-// by the products_audit_trigger.
+export const useAdjustStock = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: {
+      productId: string;
+      quantityChange: number;
+      imeis?: string[]; // required for IMEI-tracked products
+    }) => {
+      const { data, error } = await supabase.rpc('adjust_inventory', {
+        p_product_id: input.productId,
+        p_quantity_change: input.quantityChange,
+        p_imeis: input.imeis ?? null,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: STOCK_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['units-in-stock'] });
+    },
+  });
+};
+
+// ==========================================
+// MUTATION: edit product details
+// ==========================================
 export interface UpdateProductInput {
   id: string;
   sku: string;
@@ -162,7 +256,7 @@ export const useUpdateProduct = () => {
           cost_price: input.costPrice,
         })
         .eq('id', input.id)
-        .select('id, sku, name, description, price, cost_price')
+        .select(PRODUCT_COLS)
         .single();
 
       if (error) throw error;
@@ -186,3 +280,15 @@ export const formatNaira = (value: number) =>
   }).format(value);
 
 export const LOW_STOCK_THRESHOLD = 5;
+
+export const parseImeiText = (raw: string): string[] => {
+  const seen = new Set<string>();
+  for (const piece of raw.split(/[\n,]+/)) {
+    const trimmed = piece.trim();
+    if (trimmed) seen.add(trimmed);
+  }
+  return [...seen];
+};
+
+export const variantLabel = (attrs: Record<string, string> | null): string =>
+  attrs ? Object.values(attrs).join(' · ') : '';

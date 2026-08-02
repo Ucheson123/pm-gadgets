@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Package, ReceiptText, Users, Truck, Wallet,
-  ScrollText, BadgePlus, LogOut, ChevronsLeft, ChevronsRight, X, Sun, Moon
+  ScrollText, BadgePlus, LogOut, ChevronsLeft, ChevronsRight, X, Sun, Moon, Wrench
 } from 'lucide-react';
 import { BrandLogo } from '../ui/BrandLogo';
 import { useAuth } from '../../context/AuthContext';
@@ -43,6 +43,7 @@ export const Sidebar = ({
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/inventory', icon: Package, label: 'Inventory' },
     { to: '/sales', icon: ReceiptText, label: 'Sales' },
+    { to: '/repairs', icon: Wrench, label: 'Repairs' },
     ...(user?.role === 'manager'
       ? [
           { to: '/team', icon: Users, label: 'Team & Approvals' },

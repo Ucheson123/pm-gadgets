@@ -15,6 +15,41 @@ interface ReceiptModalProps {
   onClose: () => void;
 }
 
+// ==========================================
+// BRANCH ADDRESSES (shown under the branch name)
+// ==========================================
+const BRANCH_ADDRESSES: Record<string, string> = {
+  Abraka:
+    'No. 2 Donrex Camp, Opp. Iyke Supermarket, Along Police Station Road, Abraka, Delta State.',
+  Warri:
+    'Shop G144, Second Floor, Robinson Plaza, PTI, Effurun, Warri.',
+  Abuja:
+    'Shop J2-99 block J, GSM village Wuse Abuja.'
+  // Add the Abuja address here when available, e.g.:
+  // Abuja: 'Suite ..., ..., Abuja, FCT.',
+};
+
+// Replace the placeholders with each branch's real number
+const BRANCH_PHONES: Record<string, string> = {
+  Abraka: '08105509942',
+  Warri: '08165150318',
+  Abuja: '09036848120',
+};
+
+// ==========================================
+// SHOP CONDITIONS (printed on every receipt)
+// ==========================================
+const SHOP_TERMS = [
+  'We offer a 7-day warranty on all used gadgets, and 7-day warranty on brand-new gadgets as given by the manufacturer. Claims that you travelled or kept the item without using it do not extend the 7-day warranty period.',
+  'We do not offer water-resistance warranty.',
+  'We do not offer screen warranty.',
+  "Manufacturer's warranty does not cover non-mechanical damage, physical/screen damage, or liquid damage (dead device) caused by negligent use of the device.",
+  'Please test your device properly before leaving the sales premises.',
+  'All sales are final. We do not offer refunds.',
+  'If a device is found to be stolen or involved in fraud, the buyer agrees to be handed over to the appropriate authorities.',
+  "If a device has a manufacturer's fault identified at the place and time of purchase, it can be returned for replacement.",
+];
+
 const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString('en-NG', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -25,10 +60,8 @@ const pdfMoney = (v: number) =>
   'NGN ' + v.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 // ==========================================
-// Shared receipt markup — rendered twice:
-// 1. inside the modal (visible on screen)
-// 2. in a body-level portal (used ONLY when printing, so the print
-//    engine never has to fight the modal's positioning)
+// Shared receipt markup — rendered in the modal AND in the
+// body-level print portal
 // ==========================================
 const ReceiptContent = ({
   sale,
@@ -38,96 +71,139 @@ const ReceiptContent = ({
   sale: SaleRow;
   branchName: string;
   qrWrapRef?: RefObject<HTMLDivElement | null>;
-}) => (
-  <div className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-5 rounded-xl border border-slate-200 dark:border-slate-800 text-sm transition-colors duration-200">
-    <div className="text-center mb-4">
-      <p className="font-black text-lg tracking-tight">
-        <span className="text-red-600">P</span>M{' '}
-        <span className="tracking-widest text-xs font-bold text-slate-900 dark:text-white transition-colors duration-200">GADGETS</span>
-      </p>
-      <p className="text-slate-500 dark:text-slate-400 text-xs transition-colors duration-200">{branchName} Branch</p>
-    </div>
+}) => {
+  const address = BRANCH_ADDRESSES[branchName];
+  const phone = BRANCH_PHONES[branchName];
+  return (
+    <div className="bg-white text-slate-900 p-5 rounded-xl border border-slate-200 text-sm">
+      <div className="text-center mb-4">
+        <p className="font-black text-lg tracking-tight">
+          <span className="text-red-600">P</span>M{' '}
+          <span className="tracking-widest text-xs font-bold">GADGETS</span>
+        </p>
+        <p className="text-slate-500 text-xs">{branchName} Branch</p>
+        {address && (
+          <p className="text-slate-500 text-[10px] leading-snug mt-0.5">
+            <span className="font-semibold">Shop Address:</span> {address}
+          </p>
+        )}
+        {phone && (
+          <p className="text-slate-500 text-[10px] leading-snug mt-0.5">
+            <span className="font-semibold">Phone/WhatsApp:</span> {phone}
+          </p>
+        )}
+      </div>
 
-    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 border-y border-dashed border-slate-300 dark:border-slate-700 py-2 mb-3 transition-colors duration-200">
-      <span>{sale.receipt_number}</span>
-      <span>{formatDateTime(sale.created_at)}</span>
-    </div>
+      <div className="flex justify-between text-xs text-slate-500 border-y border-dashed border-slate-300 py-2 mb-3">
+        <span>{sale.receipt_number}</span>
+        <span>{formatDateTime(sale.created_at)}</span>
+      </div>
 
-    <div className="space-y-0.5 text-xs mb-3">
-      <p>
-        <span className="text-slate-500 dark:text-slate-400 transition-colors duration-200">Customer:</span>{' '}
-        <span className="text-slate-900 dark:text-slate-200 font-medium transition-colors duration-200">{sale.customer?.full_name ?? '—'}</span>
-        {sale.customer?.phone ? ` (${sale.customer.phone})` : ''}
-      </p>
-      <p>
-        <span className="text-slate-500 dark:text-slate-400 transition-colors duration-200">Served by:</span>{' '}
-        <span className="text-slate-900 dark:text-slate-200 font-medium transition-colors duration-200">{sale.salesperson?.full_name ?? '—'}</span>
-      </p>
-    </div>
+      <div className="space-y-0.5 text-xs mb-3">
+        <p>
+          <span className="text-slate-500">Customer:</span>{' '}
+          {sale.customer?.full_name ?? '—'}
+          {sale.customer?.phone ? ` (${sale.customer.phone})` : ''}
+        </p>
+        <p>
+          <span className="text-slate-500">Served by:</span>{' '}
+          {sale.salesperson?.full_name ?? '—'}
+        </p>
+      </div>
 
-    <div className="border-t border-dashed border-slate-300 dark:border-slate-700 pt-2 space-y-2 mb-3 transition-colors duration-200">
-      {sale.sale_items.map((item) => (
-        <div key={item.id}>
-          <p className="font-medium text-slate-900 dark:text-white transition-colors duration-200">{item.product?.name ?? 'Item'}</p>
-          <div className="flex justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 transition-colors duration-200">
-              {item.quantity} × {formatNaira(item.unit_price)}
-            </span>
-            <span className="font-medium text-sm text-slate-900 dark:text-white transition-colors duration-200">
-              {formatNaira(item.unit_price * item.quantity)}
-            </span>
+      <div className="border-t border-dashed border-slate-300 pt-2 space-y-2 mb-3">
+        {sale.sale_items.map((item) => (
+          <div key={item.id}>
+            <p className="font-medium">{item.product?.name ?? 'Item'}</p>
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500">
+                {item.quantity} × {formatNaira(item.unit_price)}
+              </span>
+              <span className="font-medium text-sm">
+                {formatNaira(item.unit_price * item.quantity)}
+              </span>
+            </div>
+            {item.imeis && item.imeis.length > 0 && (
+              <p className="text-[10px] text-slate-500 break-all">
+                IMEI: {item.imeis.join(', ')}
+              </p>
+            )}
           </div>
-          {item.imeis && item.imeis.length > 0 && (
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 break-all mt-0.5 font-mono transition-colors duration-200">
-              IMEI: {item.imeis.join(', ')}
-            </p>
-          )}
-        </div>
-      ))}
-    </div>
-
-    <div className="border-t border-dashed border-slate-300 dark:border-slate-700 pt-2 space-y-1 transition-colors duration-200">
-      <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
-        <span>Subtotal</span>
-        <span>{formatNaira(sale.subtotal)}</span>
+        ))}
       </div>
-      {sale.discount_amount > 0 && (
-        <div className="flex justify-between text-xs text-amber-600 dark:text-amber-500 font-medium transition-colors duration-200">
-          <span>Discount</span>
-          <span>−{formatNaira(sale.discount_amount)}</span>
-        </div>
-      )}
-      {sale.vat_amount > 0 && (
-        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
-          <span>VAT (7.5%)</span>
-          <span>{formatNaira(sale.vat_amount)}</span>
-        </div>
-      )}
-      <div className="flex justify-between font-bold text-base text-slate-900 dark:text-white transition-colors duration-200">
-        <span>TOTAL</span>
-        <span>{formatNaira(sale.total_amount)}</span>
-      </div>
-    </div>
 
-    <div ref={qrWrapRef} className="flex flex-col items-center mt-4 gap-1 p-2 bg-white rounded-lg inline-block mx-auto max-w-fit">
-      <QRCodeCanvas
-        value={JSON.stringify({
-          receipt: sale.receipt_number,
-          total: sale.total_amount,
-          date: sale.created_at,
-        })}
-        size={88}
-      />
-      <p className="text-[10px] text-slate-400 text-center mt-1 select-none">
-        Scan to verify · Thank you for shopping with PM Gadgets
+      <div className="border-t border-dashed border-slate-300 pt-2 space-y-1">
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>Subtotal</span>
+          <span>{formatNaira(sale.subtotal)}</span>
+        </div>
+        {sale.discount_amount > 0 && (
+          <div className="flex justify-between text-xs text-amber-600">
+            <span>Discount</span>
+            <span>−{formatNaira(sale.discount_amount)}</span>
+          </div>
+        )}
+        {sale.vat_amount > 0 && (
+          <div className="flex justify-between text-xs text-slate-500">
+            <span>VAT (7.5%)</span>
+            <span>{formatNaira(sale.vat_amount)}</span>
+          </div>
+        )}
+        <div className="flex justify-between font-bold text-base">
+          <span>TOTAL</span>
+          <span>{formatNaira(sale.total_amount)}</span>
+        </div>
+      </div>
+
+      <div ref={qrWrapRef} className="flex flex-col items-center mt-4 gap-1">
+        <QRCodeCanvas
+          value={JSON.stringify({
+            receipt: sale.receipt_number,
+            total: sale.total_amount,
+            date: sale.created_at,
+          })}
+          size={88}
+        />
+        <p className="text-[10px] text-slate-400">Scan to verify</p>
+      </div>
+
+      {/* Shop conditions — the customer signs beneath these */}
+      <div className="mt-4 border-t border-dashed border-slate-300 pt-2">
+        <p className="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+          Terms &amp; Conditions
+        </p>
+        <ol className="list-decimal list-outside pl-4 space-y-0.5">
+          {SHOP_TERMS.map((term, i) => (
+            <li key={i} className="text-[9px] leading-snug text-slate-500">
+              {term}
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Signatures: acceptance of the goods and the terms above */}
+      <div className="mt-8 grid grid-cols-2 gap-6">
+        <div className="text-center">
+          <div className="border-t border-slate-400 pt-1">
+            <p className="text-[10px] text-slate-600 font-medium">Customer Signature</p>
+          </div>
+        </div>
+        <div className="text-center">
+          <div className="border-t border-slate-400 pt-1">
+            <p className="text-[10px] text-slate-600 font-medium">Manager Signature</p>
+          </div>
+        </div>
+      </div>
+
+      <p className="text-[10px] text-slate-400 text-center mt-3">
+        Thank you for shopping with PM Gadgets
       </p>
     </div>
-  </div>
-);
+  );
+};
 
 // ==========================================
-// PDF: generated as real vector text on an 80mm receipt roll,
-// with the QR embedded from the on-screen canvas.
+// PDF: 80mm receipt roll, vector text, QR embedded from the canvas
 // ==========================================
 const buildReceiptPdf = (
   sale: SaleRow,
@@ -137,22 +213,36 @@ const buildReceiptPdf = (
   const W = 80; // receipt width in mm
   const M = 6;  // margin
   const CW = W - M * 2;
+  const address = BRANCH_ADDRESSES[branchName];
 
   // Pre-measure so the page height fits the content
-  let height = 34; // header block
   const probe = new jsPDF({ unit: 'mm', format: [W, 500] });
+  let height = 30; // header block
+  const phone = BRANCH_PHONES[branchName];
+  if (address) {
+    probe.setFontSize(6.5);
+    height += probe.splitTextToSize(`Shop Address: ${address}`, CW).length * 2.8 + 1;
+  }
+  if (phone) height += 3.2;
   probe.setFontSize(8);
   for (const item of sale.sale_items) {
     height += probe.splitTextToSize(item.product?.name ?? 'Item', CW - 20).length * 3.5 + 4;
+    probe.setFontSize(6.5);
     for (const imei of item.imeis ?? []) {
       height += probe.splitTextToSize(`IMEI: ${imei}`, CW).length * 3;
     }
+    probe.setFontSize(8);
   }
   height += 26; // totals block
   if (sale.discount_amount > 0) height += 4;
   if (sale.vat_amount > 0) height += 4;
   if (qrDataUrl) height += 30;
-  height += 12; // footer
+  probe.setFontSize(6);
+  height += 6; // terms header
+  for (let i = 0; i < SHOP_TERMS.length; i++) {
+    height += probe.splitTextToSize(`${i + 1}. ${SHOP_TERMS[i]}`, CW).length * 2.4 + 0.8;
+  }
+  height += 26; // signatures + footer
 
   const doc = new jsPDF({ unit: 'mm', format: [W, height] });
   let y = 8;
@@ -172,7 +262,23 @@ const buildReceiptPdf = (
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.text(`${branchName} Branch`, center, y, { align: 'center' });
-  y += 5;
+  y += 3.5;
+  if (address) {
+    doc.setFontSize(6.5);
+    const addrLines = doc.splitTextToSize(`Shop Address: ${address}`, CW);
+    doc.text(addrLines, center, y, { align: 'center' });
+    y += addrLines.length * 2.8 + 1;
+    doc.setFontSize(8);
+  }
+  if (phone) {
+    doc.setFontSize(6.5);
+    doc.text(`Phone/WhatsApp: ${phone}`, center, y, { align: 'center' });
+    y += 3.2;
+    doc.setFontSize(8);
+  }
+  if (!address && !phone) {
+    y += 1.5;
+  }
   line();
 
   // Meta
@@ -228,16 +334,44 @@ const buildReceiptPdf = (
   doc.text(pdfMoney(sale.total_amount), W - M, y + 1, { align: 'right' });
   y += 7;
 
-  // QR + footer
+  // QR
   if (qrDataUrl) {
     doc.addImage(qrDataUrl, 'PNG', center - 11, y, 22, 22);
-    y += 25;
+    y += 23;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6);
+    doc.text('Scan to verify', center, y, { align: 'center' });
+    y += 4;
   }
-  doc.setFont('helvetica', 'normal');
+
+  // Terms & conditions
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(6.5);
-  doc.text('Scan to verify - Thank you for shopping with PM Gadgets', center, y, {
-    align: 'center',
-  });
+  doc.text('TERMS & CONDITIONS', M, y);
+  y += 3;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  for (let i = 0; i < SHOP_TERMS.length; i++) {
+    const termLines = doc.splitTextToSize(`${i + 1}. ${SHOP_TERMS[i]}`, CW);
+    doc.text(termLines, M, y);
+    y += termLines.length * 2.4 + 0.8;
+  }
+
+  // Signature lines
+  y += 12; // space to actually sign in
+  const sigWidth = 28;
+  doc.setDrawColor(90);
+  doc.setLineDashPattern([], 0);
+  doc.line(M, y, M + sigWidth, y);
+  doc.line(W - M - sigWidth, y, W - M, y);
+  y += 3;
+  doc.setFontSize(6.5);
+  doc.text('Customer Signature', M + sigWidth / 2, y, { align: 'center' });
+  doc.text('Manager Signature', W - M - sigWidth / 2, y, { align: 'center' });
+  y += 5;
+
+  doc.setFontSize(6.5);
+  doc.text('Thank you for shopping with PM Gadgets', center, y, { align: 'center' });
 
   doc.save(`${sale.receipt_number}.pdf`);
 };
@@ -271,19 +405,19 @@ export const ReceiptModal = ({ saleId, onClose }: ReceiptModalProps) => {
             <div className="flex flex-wrap justify-end gap-3 pt-4">
               <button
                 onClick={onClose}
-                className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 rounded-xl text-sm font-medium transition-all duration-200"
+                className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors"
               >
                 Close
               </button>
               <button
                 onClick={handleDownloadPdf}
-                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-transparent hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition-all duration-200"
+                className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
               >
                 <Download size={16} /> Download PDF
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-red-600/20 active:scale-[0.98]"
+                className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 <Printer size={16} /> Print Receipt
               </button>
@@ -292,9 +426,7 @@ export const ReceiptModal = ({ saleId, onClose }: ReceiptModalProps) => {
         )}
       </Modal>
 
-      {/* Body-level print copy: invisible on screen (display:none via CSS),
-          becomes the only visible element during printing. No modal
-          ancestors = no clipping, no mid-page offset. */}
+      {/* Body-level print copy — the only visible element while printing */}
       {s &&
         createPortal(
           <div className="print-receipt-root">

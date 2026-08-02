@@ -18,8 +18,38 @@ import { SalesHistoryView } from './views/sales/SalesHistoryView';
 import { AuditLogsView } from './views/audit/AuditLogsView';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { RepairsView } from './views/repairs/RepairsView';
 
-const queryClient = new QueryClient();
+// ==========================================
+// QUERY CLIENT — tuned to feel like a native mobile app
+// Realtime handles live updates while the app is open; these defaults
+// cover the gaps: returning to a backgrounded tab, regaining network,
+// and transient failures.
+// ==========================================
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Refetch when the user comes back to the tab/app
+      refetchOnWindowFocus: true,
+      // Refetch as soon as the network returns
+      refetchOnReconnect: true,
+      // Data older than 30s is refetched on mount/focus; realtime
+      // invalidation still updates things instantly while open
+      staleTime: 30_000,
+      // Keep unused data around briefly so navigating back is instant
+      gcTime: 5 * 60_000,
+      // Retry transient network failures with backoff, but never retry
+      // permission/validation errors forever
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    },
+    mutations: {
+      // Money and stock actions must never be silently retried —
+      // idempotency lives in the database, not in guesswork here
+      retry: 0,
+    },
+  },
+});
 
 export default function App() {
   return (
@@ -49,6 +79,7 @@ export default function App() {
                     <Route path="/wallet" element={<WalletView />} />
                     <Route path="/orders" element={<OrdersView />} />
                     <Route path="/audit" element={<AuditLogsView />} />
+                    <Route path="/repairs" element={<RepairsView />} />
                   </Route>
                   <Route element={<SalespersonRoute />}>
                     <Route path="/pos" element={<POSView />} />

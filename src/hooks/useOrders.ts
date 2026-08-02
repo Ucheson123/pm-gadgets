@@ -5,7 +5,10 @@ import { supabase } from '../lib/supabase';
 // TYPES
 // ==========================================
 export type OrderStatus =
-  | 'pending_payment' | 'paid' | 'processing' | 'approved' | 'completed' | 'cancelled';
+  | 'pending_payment' | 'paid' | 'processing' | 'approved'
+  | 'awaiting_payment' | 'completed' | 'cancelled';
+
+export type PaymentTerms = 'prepaid' | 'on_delivery';
 
 export interface OrderItemRow {
   id: string;
@@ -18,6 +21,7 @@ export interface OrderRow {
   id: string;
   order_number: string;
   status: OrderStatus;
+  payment_terms: PaymentTerms;
   total_amount: number;
   created_at: string;
   buyer_branch_id: string;
@@ -48,7 +52,7 @@ export const useOrders = () =>
       const { data, error } = await supabase
         .from('orders')
         .select(
-          `id, order_number, status, total_amount, created_at,
+          `id, order_number, status, payment_terms, total_amount, created_at,
            buyer_branch_id, seller_branch_id,
            buyer_branch:branches!orders_buyer_branch_id_fkey(name),
            seller_branch:branches!orders_seller_branch_id_fkey(name),
@@ -88,9 +92,8 @@ export const useRemoteBranchStock = (branchId: string | null) =>
   });
 
 // ==========================================
-// MUTATIONS — all thin wrappers around the Day 5 RPCs.
-// The database enforces role, branch, status, stock, and idempotency;
-// errors come back as human-readable messages for toasting.
+// MUTATIONS — thin wrappers around the RPCs.
+// The database enforces role, branch, status, terms, stock, and idempotency.
 // ==========================================
 const useOrderAction = (fn: string) => {
   const queryClient = useQueryClient();
@@ -105,6 +108,7 @@ const useOrderAction = (fn: string) => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       queryClient.invalidateQueries({ queryKey: ['wallet-statement'] });
       queryClient.invalidateQueries({ queryKey: ['branch-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['units-in-stock'] });
     },
   });
 };
@@ -120,10 +124,12 @@ export const useCreateOrder = () => {
     mutationFn: async (input: {
       sellerBranchId: string;
       items: { product_id: string; quantity: number }[];
+      paymentTerms: PaymentTerms;
     }) => {
       const { data, error } = await supabase.rpc('create_order', {
         p_seller_branch_id: input.sellerBranchId,
         p_items: input.items,
+        p_payment_terms: input.paymentTerms,
       });
       if (error) throw error;
       return data;

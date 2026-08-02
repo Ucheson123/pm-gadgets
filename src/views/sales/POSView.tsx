@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import { BadgePercent, Loader2, Minus, Plus, Search, ShoppingCart, Trash2, UserRound } from 'lucide-react';
+import { BadgePercent, Loader2, Minus, Plus, ScanBarcode, Search, ShoppingCart, Trash2, UserRound } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
-import { useBranchStock, formatNaira } from '../../hooks/useInventory';
+import {
+  useBranchStock, useUnitsInStock, formatNaira, parseImeiText, variantLabel,
+} from '../../hooks/useInventory';
 import { useCreateSale, useCustomers } from '../../hooks/useSales';
 import { ReceiptModal } from './ReceiptModal';
 
@@ -11,11 +13,64 @@ interface CartLine {
   price: number;
   maxQty: number;
   quantity: number;
-  imeiText: string; // raw textarea input, parsed at checkout
+  trackImei: boolean;
+  imeiText: string;        // untracked products: optional free entry
+  selectedImeis: string[]; // tracked products: picked from real stock
 }
 
-const parseImeis = (raw: string): string[] =>
-  raw.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+// Picker of real in-stock IMEIs for a tracked cart line
+const ImeiPicker = ({
+  productId, quantity, selected, onToggle, disabled,
+}: {
+  productId: string;
+  quantity: number;
+  selected: string[];
+  onToggle: (imei: string) => void;
+  disabled: boolean;
+}) => {
+  const units = useUnitsInStock(productId);
+  const full = selected.length >= quantity;
+
+  return (
+    <div>
+      <p className={`text-xs mb-1 flex items-center gap-1.5 ${
+        selected.length === quantity ? 'text-emerald-600' : 'text-slate-500'
+      }`}>
+        <ScanBarcode size={13} />
+        Select the exact unit(s) being sold — {selected.length} / {quantity}
+      </p>
+      {units.isLoading && (
+        <div className="p-2 flex justify-center">
+          <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+        </div>
+      )}
+      {!units.isLoading && (
+        <div className="max-h-28 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-lg divide-y divide-slate-100 dark:divide-slate-800">
+          {(units.data ?? []).map((u) => {
+            const isSelected = selected.includes(u.imei);
+            return (
+              <label
+                key={u.id}
+                className={`flex items-center gap-2 px-2.5 py-1.5 text-xs font-mono cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+                  !isSelected && full ? 'opacity-40 cursor-not-allowed' : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => onToggle(u.imei)}
+                  disabled={disabled || (!isSelected && full)}
+                  className="rounded accent-red-600"
+                />
+                <span className="text-slate-700 dark:text-slate-300">{u.imei}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const POSView = () => {
   const { addToast } = useToast();
@@ -25,12 +80,13 @@ export const POSView = () => {
 
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [customerId, setCustomerId] = useState(''); // '' = new customer
+  const [customerId, setCustomerId] = useState('');
   const [newCustomer, setNewCustomer] = useState({ full_name: '', phone: '', email: '' });
   const [applyVat, setApplyVat] = useState(false);
   const [discountText, setDiscountText] = useState('');
   const [receiptSaleId, setReceiptSaleId] = useState<string | null>(null);
 
+  // Parents never carry stock, so quantity > 0 naturally hides them here
   const sellable = useMemo(() => {
     const rows = (stock.data ?? []).filter((r) => r.quantity > 0);
     const term = search.trim().toLowerCase();
@@ -56,7 +112,8 @@ export const POSView = () => {
         ...prev,
         {
           product_id: row.id, name: row.name, price: row.price,
-          maxQty: row.quantity, quantity: 1, imeiText: '',
+          maxQty: row.quantity, quantity: 1,
+          trackImei: row.track_imei, imeiText: '', selectedImeis: [],
         },
       ];
     });
@@ -66,6 +123,21 @@ export const POSView = () => {
     setCart((prev) =>
       prev.map((l) => (l.product_id === productId ? { ...l, ...patch } : l))
     );
+
+  const setLineQty = (line: CartLine, qty: number) => {
+    // Reducing quantity may orphan surplus IMEI selections — trim them
+    updateLine(line.product_id, {
+      quantity: qty,
+      selectedImeis: line.selectedImeis.slice(0, qty),
+    });
+  };
+
+  const toggleLineImei = (line: CartLine, imei: string) => {
+    const selected = line.selectedImeis.includes(imei)
+      ? line.selectedImeis.filter((x) => x !== imei)
+      : [...line.selectedImeis, imei];
+    updateLine(line.product_id, { selectedImeis: selected });
+  };
 
   const removeLine = (productId: string) =>
     setCart((prev) => prev.filter((l) => l.product_id !== productId));
@@ -83,9 +155,15 @@ export const POSView = () => {
       return `Discount (${formatNaira(discount)}) cannot exceed the subtotal (${formatNaira(subtotal)}).`;
     }
     for (const line of cart) {
-      const imeis = parseImeis(line.imeiText);
-      if (imeis.length > 0 && imeis.length !== line.quantity) {
-        return `"${line.name}": ${imeis.length} IMEI(s) entered but quantity is ${line.quantity}.`;
+      if (line.trackImei) {
+        if (line.selectedImeis.length !== line.quantity) {
+          return `"${line.name}": select exactly ${line.quantity} IMEI(s) from stock (${line.selectedImeis.length} selected).`;
+        }
+      } else {
+        const imeis = parseImeiText(line.imeiText);
+        if (imeis.length > 0 && imeis.length !== line.quantity) {
+          return `"${line.name}": ${imeis.length} IMEI(s) entered but quantity is ${line.quantity}.`;
+        }
       }
     }
     if (!customerId && !newCustomer.full_name.trim()) {
@@ -111,7 +189,7 @@ export const POSView = () => {
               email: newCustomer.email.trim(),
             },
         items: cart.map((l) => {
-          const imeis = parseImeis(l.imeiText);
+          const imeis = l.trackImei ? l.selectedImeis : parseImeiText(l.imeiText);
           return {
             product_id: l.product_id,
             quantity: l.quantity,
@@ -129,7 +207,7 @@ export const POSView = () => {
           setNewCustomer({ full_name: '', phone: '', email: '' });
           setApplyVat(false);
           setDiscountText('');
-          setReceiptSaleId(result.sale_id); // open the receipt
+          setReceiptSaleId(result.sale_id);
         },
         onError: (error) => addToast(error.message, 'error'),
       }
@@ -137,15 +215,15 @@ export const POSView = () => {
   };
 
   const inputClass =
-    'w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30';
+    'w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm text-slate-900 dark:text-white transition-all disabled:opacity-50';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* LEFT: product picker */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-colors duration-200">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 transition-colors" size={16} />
+            <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
             <input
               type="text"
               value={search}
@@ -155,14 +233,14 @@ export const POSView = () => {
             />
           </div>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800 transition-colors duration-200">
+        <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800">
           {stock.isLoading && (
             <div className="p-8 flex justify-center">
               <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
             </div>
           )}
           {!stock.isLoading && sellable.length === 0 && (
-            <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 transition-colors">
+            <p className="p-8 text-center text-sm text-slate-500">
               No in-stock products{search ? ` matching "${search}"` : ''}.
             </p>
           )}
@@ -170,15 +248,21 @@ export const POSView = () => {
             <button
               key={row.id}
               onClick={() => addToCart(row.id)}
-              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-red-50/50 dark:hover:bg-red-500/5 transition-all duration-200 group"
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
             >
               <div className="min-w-0">
-                <p className="font-medium text-slate-900 dark:text-white truncate transition-colors duration-200">{row.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 transition-colors duration-200">
+                <p className="font-medium text-slate-900 dark:text-white truncate">
+                  {row.name}
+                  {row.track_imei && (
+                    <ScanBarcode size={13} className="inline ml-1.5 text-red-500 align-[-2px]" />
+                  )}
+                </p>
+                <p className="text-xs text-slate-500">
                   {row.sku} · {row.quantity} in stock
+                  {row.variant_attributes && ` · ${variantLabel(row.variant_attributes)}`}
                 </p>
               </div>
-              <span className="font-semibold text-slate-900 dark:text-white shrink-0 transition-colors duration-200 group-hover:text-red-600 dark:group-hover:text-red-400">
+              <span className="font-semibold text-slate-900 dark:text-white shrink-0">
                 {formatNaira(row.price)}
               </span>
             </button>
@@ -187,27 +271,26 @@ export const POSView = () => {
       </div>
 
       {/* RIGHT: cart + customer + checkout */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 space-y-5 transition-colors duration-200">
-        <h2 className="flex items-center gap-2 font-bold text-slate-900 dark:text-white transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 space-y-5">
+        <h2 className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
           <ShoppingCart size={18} /> Current Sale
         </h2>
 
         {cart.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400 transition-colors">
+          <p className="py-8 text-center text-sm text-slate-500">
             Tap a product on the left to add it to the sale.
           </p>
         ) : (
           <div className="space-y-4">
             {cart.map((line) => (
-              <div key={line.product_id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 space-y-2 transition-all duration-200 hover:border-red-100 dark:hover:border-red-500/20 bg-white dark:bg-slate-900/50">
+              <div key={line.product_id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-medium text-sm text-slate-900 dark:text-white truncate transition-colors">
+                  <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
                     {line.name}
                   </p>
                   <button
                     onClick={() => removeLine(line.product_id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
-                    aria-label="Remove item"
+                    className="p-1 text-slate-400 hover:text-red-600"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -216,45 +299,54 @@ export const POSView = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => line.quantity > 1
-                        ? updateLine(line.product_id, { quantity: line.quantity - 1 })
+                        ? setLineQty(line, line.quantity - 1)
                         : removeLine(line.product_id)}
-                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 rounded-lg text-slate-600 dark:text-slate-300 transition-all duration-200"
+                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300"
                     >
                       <Minus size={14} />
                     </button>
-                    <span className="w-8 text-center text-sm font-semibold text-slate-900 dark:text-white transition-colors">
+                    <span className="w-8 text-center text-sm font-semibold text-slate-900 dark:text-white">
                       {line.quantity}
                     </span>
                     <button
-                      onClick={() => updateLine(line.product_id, {
-                        quantity: Math.min(line.quantity + 1, line.maxQty),
-                      })}
+                      onClick={() => setLineQty(line, Math.min(line.quantity + 1, line.maxQty))}
                       disabled={line.quantity >= line.maxQty}
-                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 rounded-lg text-slate-600 dark:text-slate-300 disabled:opacity-40 transition-all duration-200"
+                      className="w-7 h-7 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 disabled:opacity-40"
                     >
                       <Plus size={14} />
                     </button>
-                    <span className="text-xs text-slate-400 dark:text-slate-500 transition-colors">max {line.maxQty}</span>
+                    <span className="text-xs text-slate-400">max {line.maxQty}</span>
                   </div>
-                  <span className="font-semibold text-sm text-slate-900 dark:text-white transition-colors">
+                  <span className="font-semibold text-sm text-slate-900 dark:text-white">
                     {formatNaira(line.price * line.quantity)}
                   </span>
                 </div>
-                <textarea
-                  value={line.imeiText}
-                  onChange={(e) => updateLine(line.product_id, { imeiText: e.target.value })}
-                  rows={1}
-                  className={inputClass}
-                  placeholder={`IMEI(s) — optional, one per line (${line.quantity} needed if used)`}
-                />
+
+                {line.trackImei ? (
+                  <ImeiPicker
+                    productId={line.product_id}
+                    quantity={line.quantity}
+                    selected={line.selectedImeis}
+                    onToggle={(imei) => toggleLineImei(line, imei)}
+                    disabled={createSale.isPending}
+                  />
+                ) : (
+                  <textarea
+                    value={line.imeiText}
+                    onChange={(e) => updateLine(line.product_id, { imeiText: e.target.value })}
+                    rows={1}
+                    className={inputClass}
+                    placeholder={`IMEI/serial (optional) — one per line (${line.quantity} needed if used)`}
+                  />
+                )}
               </div>
             ))}
           </div>
         )}
 
         {/* Customer */}
-        <div className="space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4 transition-colors duration-200">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors">
+        <div className="space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
             <UserRound size={15} /> Customer
           </h3>
           <select
@@ -301,9 +393,9 @@ export const POSView = () => {
         </div>
 
         {/* Discount + VAT + totals */}
-        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3 transition-colors duration-200">
+        <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               <BadgePercent size={15} /> Discount (₦) — optional
             </label>
             <input
@@ -322,13 +414,13 @@ export const POSView = () => {
               </p>
             )}
             {discount > 0 && !discountTooLarge && (
-              <p className="text-xs text-amber-600 dark:text-amber-500 mt-1 transition-colors">
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
                 Discounts are printed on the receipt and recorded in the audit trail.
               </p>
             )}
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 transition-colors cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
             <input
               type="checkbox"
               checked={applyVat}
@@ -339,21 +431,21 @@ export const POSView = () => {
             Apply VAT (7.5% of amount after discount)
           </label>
 
-          <div className="space-y-1 bg-slate-50 dark:bg-slate-800/20 p-4 rounded-xl transition-colors duration-200">
-            <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 transition-colors">
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm text-slate-500">
               <span>Subtotal</span><span>{formatNaira(subtotal)}</span>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-sm text-amber-600 dark:text-amber-500 transition-colors">
+              <div className="flex justify-between text-sm text-amber-600 dark:text-amber-500">
                 <span>Discount</span><span>−{formatNaira(Math.min(discount, subtotal))}</span>
               </div>
             )}
             {applyVat && (
-              <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 transition-colors">
+              <div className="flex justify-between text-sm text-slate-500">
                 <span>VAT (7.5%)</span><span>{formatNaira(vat)}</span>
               </div>
             )}
-            <div className="flex justify-between font-bold text-lg text-slate-900 dark:text-white pt-1 transition-colors">
+            <div className="flex justify-between font-bold text-lg text-slate-900 dark:text-white">
               <span>Total</span><span>{formatNaira(total)}</span>
             </div>
           </div>
@@ -361,7 +453,7 @@ export const POSView = () => {
           <button
             onClick={handleCheckout}
             disabled={createSale.isPending || cart.length === 0 || discountTooLarge}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all duration-200 active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded-xl font-semibold shadow-lg shadow-red-600/20 transition-all active:scale-[0.98]"
           >
             {createSale.isPending && <Loader2 size={18} className="animate-spin" />}
             {createSale.isPending ? 'Recording sale...' : 'Complete Sale & Generate Receipt'}

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, Mail, Loader2 } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../components/ui/Toast';
 import { AuthLayout } from '../components/layout/AuthLayout';
+import { PasswordInput } from '../components/ui/PasswordInput';
 
 export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,29 +46,20 @@ export const LoginPage = () => {
               name="email"
               required
               disabled={isLoading}
+              autoComplete="email"
               className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
               placeholder="name@company.com"
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors duration-200">
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3.5 text-slate-400 dark:text-slate-500 transition-colors duration-200" size={18} />
-            <input
-              type="password"
-              name="password"
-              required
-              disabled={isLoading}
-              minLength={6}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-900 dark:text-white transition-all duration-200 disabled:opacity-50 hover:border-red-100 dark:hover:border-red-500/30"
-              placeholder="••••••••"
-            />
-          </div>
-        </div>
+        <PasswordInput
+          name="password"
+          label="Password"
+          disabled={isLoading}
+          autoComplete="current-password"
+        />
+
         <div className="flex justify-end mt-1">
           <Link 
             to="/forgot-password" 

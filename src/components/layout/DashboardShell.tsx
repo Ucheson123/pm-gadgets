@@ -4,6 +4,7 @@ import { Menu } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationsBell } from './NotificationsBell';
 import { useAuth } from '../../context/AuthContext';
+import { useRealtimeSync } from '../../hooks/useRealtimeSync';
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': { title: 'Dashboard', subtitle: 'Branch operations overview' },
@@ -14,6 +15,7 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/sales': { title: 'Sales History', subtitle: 'All sales recorded at your branch' },
   '/pos': { title: 'New Sale', subtitle: 'Record a customer sale and print the receipt' },
   '/audit': { title: 'Audit Trail', subtitle: 'Every change, traceable to a user' },
+  '/repairs': { title: 'Repair Transfers', subtitle: 'Send faulty stock to another branch for repair' },
 };
 
 export const DashboardShell = () => {
@@ -21,6 +23,11 @@ export const DashboardShell = () => {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  // Every page inside this shell stays live: wallet balances, orders,
+  // stock, repairs and team all refresh themselves the moment the
+  // database changes — no manual reload anywhere in the app.
+  useRealtimeSync();
 
   // Keyboard accessible: Escape closes the mobile drawer
   useEffect(() => {
