@@ -86,7 +86,7 @@ export const LoginPage = () => {
           to="/register"
           className="ml-2 inline-block font-semibold text-red-600 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200 px-3 py-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10"
         >
-          Register here
+          Register here.
         </Link>
       </div>
     </AuthLayout>
