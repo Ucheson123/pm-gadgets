@@ -51,7 +51,7 @@ export const LoginPage = () => {
         >
           <div className="flex items-center gap-2 font-bold text-sm">
             <Info size={18} />
-            Reveal Demo Login Credentials
+            Copy Demo Login Details
           </div>
           <ChevronDown
             size={18}
@@ -72,10 +72,10 @@ export const LoginPage = () => {
                 Manager (Abraka)
               </p>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm group">
+                <div className="flex items-center justify-between text-sm group flex-wrap">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Email:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-slate-900 dark:text-slate-200">admin@mail.com</span>
+                    <span className="font-mono text-slate-900 dark:text-slate-200 break-all">admin@mail.com</span>
                     <button
                       onClick={() => handleCopy('admin@mail.com', 'mgr-email')}
                       className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
@@ -85,7 +85,7 @@ export const LoginPage = () => {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm group">
+                <div className="flex items-center justify-between text-sm group flex-wrap">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Pass:</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-slate-900 dark:text-slate-200">123,Bike</span>
@@ -108,10 +108,10 @@ export const LoginPage = () => {
                 Salesperson (Abraka)
               </p>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm group">
+                <div className="flex items-center justify-between text-sm group flex-wrap">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Email:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-slate-900 dark:text-slate-200">jane@mail.com</span>
+                    <span className="font-mono text-slate-900 dark:text-slate-200 break-all">jane@mail.com</span>
                     <button
                       onClick={() => handleCopy('jane@mail.com', 'sales-email')}
                       className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
@@ -121,7 +121,7 @@ export const LoginPage = () => {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm group">
+                <div className="flex items-center justify-between text-sm group flex-wrap">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Pass:</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-slate-900 dark:text-slate-200">123,Bikers</span>
@@ -140,12 +140,12 @@ export const LoginPage = () => {
             <div className="pt-2 mt-1 text-xs text-center text-indigo-600/80 dark:text-indigo-400/80 border-t border-indigo-100 dark:border-indigo-800/50">
               Need help? WhatsApp Developer:{' '}
               <a
-                href="https://wa.me/2347086548140"
+                href="https://wa.me/2349027391570"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold hover:underline ml-1 text-indigo-700 dark:text-indigo-300 cursor-pointer"
               >
-                +234 708 654 8140
+                +234 902 739 1570
               </a>
             </div>
           </div>
