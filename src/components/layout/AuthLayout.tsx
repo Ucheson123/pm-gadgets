@@ -10,16 +10,14 @@ interface AuthLayoutProps {
 }
 
 export const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
-  // Theme toggle state for the Auth Flow
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark' || 
              (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
     }
-    return true; // Fallback to dark if undefined
+    return true; 
   });
 
-  // Apply theme to document and save preference
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -53,18 +51,20 @@ export const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
       </div>
 
       {/* Form panel */}
-      <div className="flex-1 flex items-center justify-center p-8 relative">
-        {/* Theme Toggle Button positioned at the top right of the auth screen */}
-        <button
-          onClick={() => setIsDark(!isDark)}
-          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className="absolute top-6 right-6 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 transition-all duration-200"
-        >
-          {isDark ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+      <div className="flex-1 flex items-center justify-center p-8">
+        
+        {/* Card Wrapper with 'relative' positioning */}
+        <div className="relative w-full max-w-md bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-200 hover:border-red-100 hover:shadow-md dark:hover:border-red-500/20">
+          
+          {/* Theme Toggle Button positioned to hang off the top right of the card */}
+          <button
+            onClick={() => setIsDark(!isDark)}
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className="absolute -top-5 -right-5 sm:-top-6 sm:-right-6 p-3 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-100 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/20 transition-all duration-200 shadow-md cursor-pointer z-10"
+          >
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
 
-        {/* Card Wrapper matching the reference photo */}
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-200 hover:border-red-100 hover:shadow-md dark:hover:border-red-500/20">
           <div className="md:hidden mb-10 flex justify-center">
             <BrandLogo />
           </div>
